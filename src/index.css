@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 29 29 29;
+    /* #1d1d1d */
+    --foreground: 255 255 255;
+  }
+
+  body {
+    @apply bg-background text-white antialiased font-sans overflow-x-hidden leading-relaxed;
+    font-size: 15px;
+    /* Slightly tighter for dashboard density */
+  }
+
+  /* Override all headings to use Sans (Inter) */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.05] shadow-glass;
+  }
+
+  .glass-input {
+    @apply bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-brand-gold/50 focus:ring-1 focus:ring-brand-gold/50 transition-all;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(197, 157, 95, 0.3);
+  }
+}
