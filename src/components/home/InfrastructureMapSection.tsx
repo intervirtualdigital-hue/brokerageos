@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Section } from '../ui/Section';
 
@@ -283,12 +284,88 @@ const VerticalConnector = ({
     </div>
 );
 
+/* ── Floating Detail Panel (portalled to body) ── */
+const FloatingDetailPanel = ({
+    mod,
+    anchorRef,
+}: {
+    mod: ArchModule;
+    anchorRef: React.RefObject<HTMLDivElement>;
+}) => {
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+        if (anchorRef.current) {
+            const rect = anchorRef.current.getBoundingClientRect();
+            setPos({
+                top: rect.bottom + 12,
+                left: rect.left + rect.width / 2,
+            });
+        }
+    }, [anchorRef]);
+
+    return createPortal(
+        <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-2xl overflow-hidden border pointer-events-none"
+            style={{
+                position: 'fixed',
+                zIndex: 9999,
+                width: 280,
+                top: pos.top,
+                left: pos.left,
+                transform: 'translateX(-50%)',
+                backgroundColor: '#111',
+                borderColor: `${GLOW}20`,
+                boxShadow: `0 24px 64px rgba(0,0,0,0.8), 0 0 40px ${GLOW}06`,
+            }}
+        >
+            {/* Arrow */}
+            <div
+                className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
+                style={{
+                    backgroundColor: '#111',
+                    borderLeft: `1px solid ${GLOW}20`,
+                    borderTop: `1px solid ${GLOW}20`,
+                }}
+            />
+
+            <div className="p-5 relative z-10">
+                <p className="text-[13px] text-white/70 leading-relaxed mb-4">
+                    {mod.description}
+                </p>
+                <div className="space-y-2">
+                    {mod.details.map((d, i) => (
+                        <div
+                            key={i}
+                            className="flex items-start gap-2.5"
+                        >
+                            <div
+                                className="w-1 h-1 rounded-full mt-[7px] shrink-0"
+                                style={{ backgroundColor: `${GLOW}88` }}
+                            />
+                            <span className="text-[12px] text-white/50 leading-relaxed">
+                                {d}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </motion.div>,
+        document.body
+    );
+};
+
 /* ── Module Node Card ── */
 const ModuleNode = ({
     mod,
     isHighlighted,
     isExpanded,
     onToggle,
+    onLeave,
     index,
     isInView,
     activeFlow,
@@ -297,22 +374,26 @@ const ModuleNode = ({
     isHighlighted: boolean;
     isExpanded: boolean;
     onToggle: () => void;
+    onLeave: () => void;
     index: number;
     isInView: boolean;
     activeFlow: FlowView;
 }) => {
     const displayLabel = mod.flowLabels?.[activeFlow] ?? mod.label;
+    const cardRef = useRef<HTMLDivElement>(null);
 
     return (
         <motion.div
-            className="relative"
+            className="relative flex"
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+            style={{ width: 170 }}
         >
             {/* The Node */}
             <motion.div
-                className="relative cursor-pointer rounded-2xl overflow-hidden border transition-all duration-500"
+                ref={cardRef}
+                className="relative cursor-pointer rounded-2xl overflow-hidden border transition-all duration-500 flex flex-col w-full"
                 style={{
                     backgroundColor: isExpanded ? CARD_BG : SURFACE,
                     borderColor: isExpanded
@@ -325,12 +406,10 @@ const ModuleNode = ({
                         : isHighlighted
                             ? `0 0 20px ${GLOW}08, 0 8px 32px rgba(0,0,0,0.4)`
                             : '0 4px 24px rgba(0,0,0,0.3)',
-                    minWidth: 150,
-                    maxWidth: 180,
-                    width: '100%',
+                    minHeight: 160,
                 }}
-                onClick={onToggle}
                 onMouseEnter={onToggle}
+                onMouseLeave={onLeave}
                 whileHover={{ scale: 1.03, y: -4 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
@@ -344,7 +423,7 @@ const ModuleNode = ({
                 />
 
                 {/* Node content */}
-                <div className="relative z-10 p-4 lg:p-5">
+                <div className="relative z-10 p-4 lg:p-5 flex flex-col flex-1">
                     {/* Order badge */}
                     <div
                         className="text-[10px] font-bold tracking-[0.2em] uppercase mb-3 transition-colors duration-300"
@@ -373,6 +452,9 @@ const ModuleNode = ({
                         {mod.title}
                     </p>
 
+                    {/* Spacer to push indicator to bottom */}
+                    <div className="flex-1" />
+
                     {/* Pulse indicator */}
                     <div className="flex items-center gap-2 mt-4">
                         <motion.div
@@ -399,56 +481,10 @@ const ModuleNode = ({
                 </div>
             </motion.div>
 
-            {/* Expanded Detail Panel */}
+            {/* Expanded Detail Panel — portalled to body */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                        className="absolute z-50 mt-3 rounded-2xl overflow-hidden border"
-                        style={{
-                            width: 280,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            backgroundColor: '#111',
-                            borderColor: `${GLOW}20`,
-                            boxShadow: `0 24px 64px rgba(0,0,0,0.8), 0 0 40px ${GLOW}06`,
-                        }}
-                    >
-                        {/* Arrow */}
-                        <div
-                            className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
-                            style={{
-                                backgroundColor: '#111',
-                                borderLeft: `1px solid ${GLOW}20`,
-                                borderTop: `1px solid ${GLOW}20`,
-                            }}
-                        />
-
-                        <div className="p-5 relative z-10">
-                            <p className="text-[13px] text-white/70 leading-relaxed mb-4">
-                                {mod.description}
-                            </p>
-                            <div className="space-y-2">
-                                {mod.details.map((d, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-start gap-2.5"
-                                    >
-                                        <div
-                                            className="w-1 h-1 rounded-full mt-[7px] shrink-0"
-                                            style={{ backgroundColor: `${GLOW}88` }}
-                                        />
-                                        <span className="text-[12px] text-white/50 leading-relaxed">
-                                            {d}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
+                    <FloatingDetailPanel mod={mod} anchorRef={cardRef as React.RefObject<HTMLDivElement>} />
                 )}
             </AnimatePresence>
         </motion.div>
@@ -621,7 +657,7 @@ export const InfrastructureMapSection = () => {
     return (
         <Section
             container={false}
-            className="relative overflow-hidden border-y py-20 md:py-28 lg:py-36"
+            className="relative overflow-x-hidden border-y py-20 md:py-28 lg:py-36"
             style={{ backgroundColor: BG, borderColor: 'rgba(255,255,255,0.05)' }}
         >
             {/* ── Ambient Background ── */}
@@ -705,11 +741,11 @@ export const InfrastructureMapSection = () => {
             {/* ── Architecture Diagram ── */}
             <div ref={containerRef} className="relative z-10 max-w-[1400px] mx-auto px-4 lg:px-8">
                 {/* ═══ DESKTOP (lg+) — Horizontal Flow ═══ */}
-                <div className="hidden lg:flex items-start justify-center">
+                <div className="hidden lg:flex items-stretch justify-center">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeFlow}
-                            className="flex items-start justify-center"
+                            className="flex items-stretch justify-center"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
@@ -718,7 +754,7 @@ export const InfrastructureMapSection = () => {
                             {visibleModules.map((mod, i) => {
                                 const isInPath = currentPath.includes(mod.id);
                                 return (
-                                    <div key={mod.id} className="flex items-start">
+                                    <div key={mod.id} className="flex items-stretch">
                                         <ModuleNode
                                             mod={mod}
                                             isHighlighted={isInPath}
@@ -728,6 +764,7 @@ export const InfrastructureMapSection = () => {
                                                     expandedNode === mod.id ? null : mod.id
                                                 )
                                             }
+                                            onLeave={() => setExpandedNode(null)}
                                             index={i}
                                             isInView={isInView}
                                             activeFlow={activeFlow}
