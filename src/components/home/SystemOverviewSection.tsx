@@ -11,7 +11,7 @@ import {
     Eye, FileText, Lock,
     GitBranch, Zap, RotateCcw,
     PenTool, Shield, Send,
-    MessageSquare, Clock, Sparkles,
+    Clock, Sparkles,
     Briefcase, Star, Target,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -21,7 +21,7 @@ import { Link } from 'react-router-dom';
 /* ═══════════════════════════════════════════ */
 
 const ACCENT = '#FFDD59';
-const SURFACE = '#1A1A1A';
+
 const CARD = '#0F0F0F';
 
 /* ─── 01: Institutional Brokerage Website ─── */
