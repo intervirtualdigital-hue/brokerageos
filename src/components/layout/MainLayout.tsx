@@ -15,19 +15,7 @@ const ScrollToTop = () => {
 export const MainLayout = () => {
     const location = useLocation();
 
-    useEffect(() => {
-        // Load GHL Chat Widget
-        const script = document.createElement('script');
-        script.src = 'https://widgets.leadconnectorhq.com/loader.js';
-        script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
-        script.setAttribute('data-widget-id', '69b0fa690eb199cda4ae40b1');
-        script.async = true;
-        document.body.appendChild(script);
 
-        return () => {
-            // Optional: document.body.removeChild(script);
-        };
-    }, []);
 
     return (
         <div className="min-h-screen relative text-soft-text overflow-hidden bg-[#0A0A0A]">
