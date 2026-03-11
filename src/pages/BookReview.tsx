@@ -564,12 +564,12 @@ export const BookReview = () => {
             </div>
 
             {/* Trust signals */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="grid grid-cols-2 gap-4">
               {trustSignals.map(ts => (
-                <div key={ts.label} className="rounded-xl p-3 text-center border" style={{ background: SURFACE, borderColor: 'rgba(255,255,255,0.04)' }}>
-                  <ts.icon size={14} className="mx-auto mb-1.5" style={{ color: `${ACCENT}60` }} />
-                  <div className="text-sm font-semibold text-white mb-0.5">{ts.label}</div>
-                  <div className="text-[11px] text-muted-text">{ts.sub}</div>
+                <div key={ts.label} className="rounded-xl p-4 text-center border transition-colors hover:border-white/10" style={{ background: SURFACE, borderColor: 'rgba(255,255,255,0.04)' }}>
+                  <ts.icon size={18} className="mx-auto mb-2" style={{ color: `${ACCENT}80` }} />
+                  <div className="text-sm font-semibold text-white mb-1">{ts.label}</div>
+                  <div className="text-xs text-muted-text">{ts.sub}</div>
                 </div>
               ))}
             </motion.div>
