@@ -1,18 +1,27 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Section } from '../components/ui/Section';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Clock, Layers, ArrowRight, Building2,
   User, Briefcase, BarChart3, Wrench, MessageSquare,
   CheckCircle2, Sparkles, Lock, ChevronDown,
+  CalendarDays, Loader2,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════ */
-/*              ACCENT & PALETTE              */
+/*              CONSTANTS                     */
 /* ═══════════════════════════════════════════ */
 const ACCENT = '#FFDD59';
 const SURFACE = '#111111';
+
+const WEBHOOK_URL =
+  'https://services.leadconnectorhq.com/hooks/haxeHgIDHbGvqriQUPOO/webhook-trigger/bae1f1f4-0a3a-4404-b343-c3d875e604de';
+
+const CALENDAR_EMBED_URL =
+  'https://api.leadconnectorhq.com/widget/booking/noNIOmETdLnTvHFd7AGl';
+const CALENDAR_SCRIPT_URL =
+  'https://link.msgsndr.com/js/form_embed.js';
 
 /* ═══════════════════════════════════════════ */
 /*              TRUST SIGNALS                 */
@@ -141,7 +150,6 @@ const PremiumSelect = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {/* Glow ring */}
       <div
         className="absolute -inset-px rounded-xl transition-all duration-500 pointer-events-none"
         style={{
@@ -162,7 +170,6 @@ const PremiumSelect = ({
         onBlur={() => { setFocused(false); setTimeout(() => setOpen(false), 200); }}
         tabIndex={0}
       >
-        {/* Label row */}
         <div className="flex items-center gap-2 px-4 pt-3 pb-0">
           <Icon
             size={13}
@@ -188,7 +195,6 @@ const PremiumSelect = ({
         </div>
       </div>
 
-      {/* Dropdown */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -234,7 +240,6 @@ const PremiumSelect = ({
         )}
       </AnimatePresence>
 
-      {/* Filled check */}
       <AnimatePresence>
         {hasValue && !open && (
           <motion.div
@@ -269,7 +274,6 @@ const PremiumTextarea = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {/* Glow ring */}
       <div
         className="absolute -inset-px rounded-xl transition-all duration-500 pointer-events-none"
         style={{
@@ -318,13 +322,52 @@ const PremiumTextarea = ({
         />
       </div>
 
-      {/* Character count */}
       {hasValue && (
         <div className="absolute right-3 bottom-2 text-[9px] text-white/15">
           {value.length}
         </div>
       )}
     </motion.div>
+  );
+};
+
+/* ═══════════════════════════════════════════ */
+/*            CALENDAR EMBED                  */
+/* ═══════════════════════════════════════════ */
+const CalendarEmbed = () => {
+  useEffect(() => {
+    // Dynamically load the GHL embed script when this component mounts
+    const script = document.createElement('script');
+    script.src = CALENDAR_SCRIPT_URL;
+    script.type = 'text/javascript';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // document.body.removeChild(script);
+    };
+  }, []);
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden border"
+      style={{ borderColor: 'rgba(255,255,255,0.08)', minHeight: '520px' }}
+    >
+      <iframe
+        src={CALENDAR_EMBED_URL}
+        title="Book a Time"
+        id="TMmrR1Zzoub9j4yIUbXU_1773202202661"
+        style={{
+          width: '100%',
+          border: 'none',
+          overflow: 'hidden',
+          height: '520px',
+          background: '#0A0A0A',
+          colorScheme: 'dark',
+        }}
+        scrolling="no"
+      />
+    </div>
   );
 };
 
@@ -352,72 +395,62 @@ const FormProgress = ({ filled, total }: { filled: number; total: number }) => {
 };
 
 /* ═══════════════════════════════════════════ */
-/*            SUCCESS STATE                   */
+/*         STEP INDICATOR (1 → 2)             */
 /* ═══════════════════════════════════════════ */
-const SuccessState = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="text-center py-12 px-6"
-  >
-    {/* Animated check ring */}
-    <motion.div
-      className="w-20 h-20 rounded-full mx-auto mb-8 flex items-center justify-center relative"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-    >
-      {/* Outer ring */}
-      <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: `${ACCENT}30` }} />
-      {/* Glow */}
+const StepIndicator = ({ currentStep }: { currentStep: 1 | 2 }) => (
+  <div className="flex items-center gap-3 mb-8">
+    {/* Step 1 */}
+    <div className="flex items-center gap-2">
       <div
-        className="absolute inset-0 rounded-full blur-xl"
-        style={{ background: `${ACCENT}15` }}
-      />
-      {/* Inner */}
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center relative z-10"
-        style={{ background: `${ACCENT}15`, border: `1px solid ${ACCENT}30` }}
+        className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-500"
+        style={{
+          background: currentStep >= 1 ? ACCENT : 'rgba(255,255,255,0.06)',
+          color: currentStep >= 1 ? '#111' : 'rgba(255,255,255,0.25)',
+          boxShadow: currentStep === 1 ? `0 0 16px ${ACCENT}30` : 'none',
+        }}
       >
-        <motion.div
-          initial={{ scale: 0, rotate: -45 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
-        >
-          <CheckCircle2 size={28} style={{ color: ACCENT }} />
-        </motion.div>
+        {currentStep > 1 ? <CheckCircle2 size={14} /> : '1'}
       </div>
-    </motion.div>
+      <span
+        className="text-[11px] font-medium transition-colors"
+        style={{ color: currentStep >= 1 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)' }}
+      >
+        Your Details
+      </span>
+    </div>
 
-    <motion.h3
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-      className="text-2xl font-semibold text-white mb-3"
-    >
-      Application Received
-    </motion.h3>
-    <motion.p
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="text-muted-text leading-relaxed max-w-sm mx-auto mb-6"
-    >
-      Our team will review your application and reach out within 1 business day to schedule your session.
-    </motion.p>
+    {/* Connector */}
+    <div className="flex-1 h-px relative overflow-hidden">
+      <div className="absolute inset-0 bg-white/8" />
+      <motion.div
+        className="absolute inset-y-0 left-0 h-full"
+        style={{ background: ACCENT }}
+        initial={{ width: '0%' }}
+        animate={{ width: currentStep >= 2 ? '100%' : '0%' }}
+        transition={{ duration: 0.6, ease: 'easeInOut' }}
+      />
+    </div>
 
-    {/* Confirmation details */}
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6 }}
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
-      style={{ borderColor: `${ACCENT}20`, background: `${ACCENT}08` }}
-    >
-      <Lock size={11} style={{ color: ACCENT }} />
-      <span className="text-[11px] text-white/50">Confidential — all data encrypted</span>
-    </motion.div>
-  </motion.div>
+    {/* Step 2 */}
+    <div className="flex items-center gap-2">
+      <div
+        className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-500"
+        style={{
+          background: currentStep >= 2 ? ACCENT : 'rgba(255,255,255,0.06)',
+          color: currentStep >= 2 ? '#111' : 'rgba(255,255,255,0.25)',
+          boxShadow: currentStep === 2 ? `0 0 16px ${ACCENT}30` : 'none',
+        }}
+      >
+        2
+      </div>
+      <span
+        className="text-[11px] font-medium transition-colors"
+        style={{ color: currentStep >= 2 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)' }}
+      >
+        Book a Time
+      </span>
+    </div>
+  </div>
 );
 
 /* ═══════════════════════════════════════════ */
@@ -427,11 +460,46 @@ export const BookReview = () => {
   const [formData, setFormData] = useState({
     name: '', firm: '', volume: '', tools: '', message: '',
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      // Build webhook payload with BROKERAGEOS_ prefixes
+      const payload = {
+        BROKERAGEOS_FULL_NAME: formData.name,
+        BROKERAGEOS_FIRM_NAME: formData.firm,
+        BROKERAGEOS_DEAL_VOLUME: formData.volume,
+        BROKERAGEOS_CURRENT_TOOLS: formData.tools,
+        BROKERAGEOS_PRIMARY_CHALLENGE: formData.message,
+        BROKERAGEOS_SOURCE: 'book-review',
+        BROKERAGEOS_SUBMITTED_AT: new Date().toISOString(),
+      };
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook returned ${response.status}`);
+      }
+
+      // Move to step 2 (calendar)
+      setStep(2);
+    } catch (err) {
+      console.error('Webhook error:', err);
+      // Still proceed to calendar — don't block UX on webhook failure
+      setStep(2);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filledCount = Object.entries(formData).filter(
@@ -450,7 +518,6 @@ export const BookReview = () => {
       {/* ── Ambient effects ── */}
       <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none" style={{ background: `${ACCENT}08` }} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none" style={{ background: '#4ade8008' }} />
-      {/* Grid pattern */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -508,13 +575,11 @@ export const BookReview = () => {
             </motion.div>
           </div>
 
-          {/* ═══ Right Column: Premium Form ═══ */}
+          {/* ═══ Right Column: 2-Step Form ═══ */}
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: `linear-gradient(135deg, ${ACCENT}08, transparent 50%)`,
-              }}
+              className="relative rounded-2xl overflow-visible"
+              style={{ background: `linear-gradient(135deg, ${ACCENT}08, transparent 50%)` }}
             >
               {/* Outer glow border */}
               <div
@@ -528,133 +593,186 @@ export const BookReview = () => {
               {/* Inner card */}
               <div
                 className="relative rounded-2xl p-8 md:p-10 m-px"
-                style={{
-                  background: `linear-gradient(180deg, #141414 0%, #0F0F0F 100%)`,
-                }}
+                style={{ background: 'linear-gradient(180deg, #141414 0%, #0F0F0F 100%)' }}
               >
-                {/* Decorative corner glow */}
-                <div
-                  className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] pointer-events-none"
-                  style={{ background: `${ACCENT}06` }}
-                />
-                <div
-                  className="absolute bottom-0 left-0 w-40 h-40 rounded-full blur-[80px] pointer-events-none"
-                  style={{ background: `${ACCENT}04` }}
-                />
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] pointer-events-none" style={{ background: `${ACCENT}06` }} />
+                <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full blur-[80px] pointer-events-none" style={{ background: `${ACCENT}04` }} />
 
-                <AnimatePresence mode="wait">
-                  {submitted ? (
-                    <SuccessState key="success" />
-                  ) : (
-                    <motion.div
-                      key="form"
-                      className="relative z-10"
-                      initial={{ opacity: 1 }}
-                      exit={{ opacity: 0, y: -20 }}
-                    >
-                      {/* Form header */}
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-2xl font-semibold text-white mb-1">
-                            Request Deployment Access
-                          </h3>
-                          <p className="text-sm text-white/35">
-                            Limited onboarding — complete form below
-                          </p>
-                        </div>
-                        {/* Live indicator */}
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}15` }}>
-                          <motion.div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: ACCENT }}
-                            animate={{ opacity: [1, 0.4, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
+                <div className="relative z-10">
+                  {/* ── Header ── */}
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="text-2xl font-semibold text-white mb-1">
+                        {step === 1 ? 'Request Deployment Access' : 'Book Your Session'}
+                      </h3>
+                      <p className="text-sm text-white/35">
+                        {step === 1
+                          ? 'Limited onboarding — complete form below'
+                          : 'Pick a time that works for your team'
+                        }
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}15` }}>
+                      <motion.div
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: ACCENT }}
+                        animate={{ opacity: [1, 0.4, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: `${ACCENT}90` }}>Open</span>
+                    </div>
+                  </div>
+
+                  {/* ── Step Indicator ── */}
+                  <StepIndicator currentStep={step} />
+
+                  {/* ── Step Content ── */}
+                  <AnimatePresence mode="wait">
+                    {step === 1 ? (
+                      /* ═══════════════════════════════ */
+                      /*       STEP 1: FORM FIELDS      */
+                      /* ═══════════════════════════════ */
+                      <motion.div
+                        key="step-1"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0, x: -40 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <FormProgress filled={filledCount} total={4} />
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                          <PremiumInput
+                            id="name" label="Full Name" icon={User}
+                            placeholder="Your full name"
+                            value={formData.name}
+                            onChange={val => setFormData(p => ({ ...p, name: val }))}
                           />
-                          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: `${ACCENT}90` }}>Open</span>
-                        </div>
-                      </div>
+                          <PremiumInput
+                            id="firm" label="Firm Name" icon={Briefcase}
+                            placeholder="Your brokerage or advisory firm"
+                            value={formData.firm}
+                            onChange={val => setFormData(p => ({ ...p, firm: val }))}
+                          />
+                          <PremiumSelect
+                            id="volume" label="Annual Deal Volume" icon={BarChart3}
+                            options={volumeOptions}
+                            value={formData.volume}
+                            onChange={val => setFormData(p => ({ ...p, volume: val }))}
+                          />
+                          <PremiumInput
+                            id="tools" label="Current Tools" icon={Wrench}
+                            placeholder="e.g. HubSpot, DocuSign, custom forms..."
+                            value={formData.tools}
+                            onChange={val => setFormData(p => ({ ...p, tools: val }))}
+                          />
+                          <PremiumTextarea
+                            id="message" label="Primary Challenge" icon={MessageSquare}
+                            placeholder="Describe the biggest bottleneck in your current deal flow..."
+                            value={formData.message}
+                            onChange={val => setFormData(p => ({ ...p, message: val }))}
+                          />
 
-                      {/* Progress bar */}
-                      <FormProgress filled={filledCount} total={4} />
+                          {/* Error */}
+                          {submitError && (
+                            <div className="text-red-400 text-sm text-center py-2">{submitError}</div>
+                          )}
 
-                      {/* Form fields */}
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <PremiumInput
-                          id="name" label="Full Name" icon={User}
-                          placeholder="Your full name"
-                          value={formData.name}
-                          onChange={val => setFormData(p => ({ ...p, name: val }))}
-                        />
-
-                        <PremiumInput
-                          id="firm" label="Firm Name" icon={Briefcase}
-                          placeholder="Your brokerage or advisory firm"
-                          value={formData.firm}
-                          onChange={val => setFormData(p => ({ ...p, firm: val }))}
-                        />
-
-                        <PremiumSelect
-                          id="volume" label="Annual Deal Volume" icon={BarChart3}
-                          options={volumeOptions}
-                          value={formData.volume}
-                          onChange={val => setFormData(p => ({ ...p, volume: val }))}
-                        />
-
-                        <PremiumInput
-                          id="tools" label="Current Tools" icon={Wrench}
-                          placeholder="e.g. HubSpot, DocuSign, custom forms..."
-                          value={formData.tools}
-                          onChange={val => setFormData(p => ({ ...p, tools: val }))}
-                        />
-
-                        <PremiumTextarea
-                          id="message" label="Primary Challenge" icon={MessageSquare}
-                          placeholder="Describe the biggest bottleneck in your current deal flow..."
-                          value={formData.message}
-                          onChange={val => setFormData(p => ({ ...p, message: val }))}
-                        />
-
-                        {/* ── Submit Button ── */}
-                        <div className="pt-3">
-                          <motion.button
-                            type="submit"
-                            className="w-full relative overflow-hidden rounded-xl font-semibold text-base transition-all group"
-                            style={{
-                              background: `linear-gradient(135deg, ${ACCENT}, #F0C830)`,
-                              color: '#111',
-                              padding: '16px 24px',
-                              boxShadow: `0 4px 24px ${ACCENT}25, 0 0 0 1px ${ACCENT}40`,
-                            }}
-                            whileHover={{ scale: 1.01, boxShadow: `0 8px 32px ${ACCENT}35, 0 0 0 1px ${ACCENT}60` }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {/* Shimmer effect */}
-                            <div
-                              className="absolute inset-0 pointer-events-none transition-transform duration-700 group-hover:translate-x-full"
+                          {/* Submit → Step 2 */}
+                          <div className="pt-3">
+                            <motion.button
+                              type="submit"
+                              disabled={submitting}
+                              className="w-full relative overflow-hidden rounded-xl font-semibold text-base transition-all group disabled:opacity-70"
                               style={{
-                                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)',
-                                transform: 'translateX(-100%)',
+                                background: `linear-gradient(135deg, ${ACCENT}, #F0C830)`,
+                                color: '#111',
+                                padding: '16px 24px',
+                                boxShadow: `0 4px 24px ${ACCENT}25, 0 0 0 1px ${ACCENT}40`,
                               }}
-                            />
-                            <div className="relative flex items-center justify-center gap-2">
-                              <Sparkles size={16} />
-                              Submit Application
-                              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                              whileHover={!submitting ? { scale: 1.01, boxShadow: `0 8px 32px ${ACCENT}35, 0 0 0 1px ${ACCENT}60` } : {}}
+                              whileTap={!submitting ? { scale: 0.98 } : {}}
+                            >
+                              <div
+                                className="absolute inset-0 pointer-events-none transition-transform duration-700 group-hover:translate-x-full"
+                                style={{
+                                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)',
+                                  transform: 'translateX(-100%)',
+                                }}
+                              />
+                              <div className="relative flex items-center justify-center gap-2">
+                                {submitting ? (
+                                  <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Submitting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles size={16} />
+                                    Continue to Booking
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                  </>
+                                )}
+                              </div>
+                            </motion.button>
+                          </div>
+
+                          <div className="flex items-center justify-center gap-2 pt-1">
+                            <Lock size={10} className="text-white/15" />
+                            <p className="text-[11px] text-white/20">
+                              Encrypted submission — all information is confidential
+                            </p>
+                          </div>
+                        </form>
+                      </motion.div>
+                    ) : (
+                      /* ═══════════════════════════════ */
+                      /*     STEP 2: CALENDAR EMBED     */
+                      /* ═══════════════════════════════ */
+                      <motion.div
+                        key="step-2"
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                      >
+                        {/* Confirmation banner */}
+                        <div
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl mb-6"
+                          style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}15` }}
+                        >
+                          <CheckCircle2 size={16} style={{ color: ACCENT }} />
+                          <div>
+                            <div className="text-sm font-medium text-white">
+                              Details received, {formData.name.split(' ')[0] || 'there'}!
                             </div>
-                          </motion.button>
+                            <div className="text-[11px] text-white/35">
+                              Now select a time for your infrastructure review
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Privacy note */}
-                        <div className="flex items-center justify-center gap-2 pt-1">
-                          <Lock size={10} className="text-white/15" />
-                          <p className="text-[11px] text-white/20">
-                            Encrypted submission — all information is confidential
-                          </p>
+                        {/* Calendar embed — loads GHL script on mount */}
+                        <CalendarEmbed />
+
+                        {/* Back link */}
+                        <div className="flex items-center justify-between mt-6">
+                          <button
+                            onClick={() => setStep(1)}
+                            className="flex items-center gap-1.5 text-sm text-white/30 hover:text-white/60 transition-colors"
+                          >
+                            <ArrowRight size={12} className="rotate-180" />
+                            Edit details
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <CalendarDays size={11} className="text-white/15" />
+                            <span className="text-[11px] text-white/20">
+                              45-min session — no commitment
+                            </span>
+                          </div>
                         </div>
-                      </form>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           </motion.div>
