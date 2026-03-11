@@ -12,36 +12,22 @@ const ScrollToTop = () => {
     }, [pathname]);
     return null;
 };
-const pageVariants = {
-    initial: { opacity: 0, filter: 'blur(4px)', scale: 0.98 },
-    animate: {
-        opacity: 1,
-        filter: 'blur(0px)',
-        scale: 1,
-        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number], delay: 0.1 }
-    },
-    exit: {
-        opacity: 0,
-        filter: 'blur(4px)',
-        scale: 0.98,
-        transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
-    }
-};
-
-const preloaderVariants = {
-    initial: { top: '0%' },
-    animate: {
-        top: '-100%',
-        transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] as [number, number, number, number], delay: 0.15 }
-    },
-    exit: {
-        top: '0%',
-        transition: { duration: 0.6, ease: [0.76, 0, 0.24, 1] as [number, number, number, number] }
-    }
-};
-
 export const MainLayout = () => {
     const location = useLocation();
+
+    useEffect(() => {
+        // Load GHL Chat Widget
+        const script = document.createElement('script');
+        script.src = 'https://widgets.leadconnectorhq.com/loader.js';
+        script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
+        script.setAttribute('data-widget-id', '69b0fa690eb199cda4ae40b1');
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            // Optional: document.body.removeChild(script);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen relative text-soft-text overflow-hidden bg-[#0A0A0A]">
@@ -51,27 +37,26 @@ export const MainLayout = () => {
                 <ScrollToTop />
                 <Header />
                 <main className="flex-grow">
-                    <AnimatePresence mode="sync">
-                        {/* The Page Preloader Wipe */}
+                    <AnimatePresence mode="wait">
                         <motion.div
-                            key={`preloader-${location.pathname}`}
-                            className="fixed inset-0 z-[100] bg-brand-accent flex items-center justify-center transform-gpu"
-                            variants={preloaderVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
+                            key={location.pathname}
+                            className="relative w-full h-full"
                         >
-                            {/* Inner dark block that trails slightly behind for a layered effect */}
+                            {/* Awesome Page Transition Wipe */}
                             <motion.div
-                                className="absolute inset-x-0 bottom-0 top-1 bg-[#111111]"
-                            />
-                            <motion.div
-                                className="relative z-10 flex items-center justify-center"
-                                initial={{ opacity: 1 }}
-                                animate={{ opacity: 0, transition: { duration: 0.2, delay: 0.2 } }}
-                                exit={{ opacity: 1, transition: { duration: 0.2, delay: 0.3 } }}
+                                className="fixed inset-0 z-[100] bg-brand-accent flex items-center justify-center pointer-events-none transform-gpu"
+                                initial={{ y: '0%' }}
+                                animate={{ y: '-100%' }}
+                                exit={{ y: '0%' }}
+                                transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] as [number, number, number, number], delay: 0.15 }}
                             >
-                                <div className="flex flex-col items-center gap-4">
+                                <div className="absolute inset-x-0 bottom-0 top-1 bg-[#111111]" />
+                                <motion.div
+                                    className="relative z-10 flex flex-col items-center gap-4"
+                                    initial={{ opacity: 1 }}
+                                    animate={{ opacity: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.2 }}
+                                >
                                     <div className="w-12 h-12 rounded-xl flex items-center justify-center relative">
                                         <div className="absolute inset-0 border-2 border-brand-accent/20 rounded-xl" />
                                         <div className="absolute inset-0 border-2 border-brand-accent rounded-xl border-t-transparent animate-spin" />
@@ -80,20 +65,19 @@ export const MainLayout = () => {
                                     <span className="text-[10px] font-bold text-white tracking-[0.2em] uppercase">
                                         Loading System...
                                     </span>
-                                </div>
+                                </motion.div>
                             </motion.div>
-                        </motion.div>
 
-                        {/* The Page Content Fade */}
-                        <motion.div
-                            key={location.pathname}
-                            variants={pageVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="w-full h-full transform-gpu"
-                        >
-                            <Outlet />
+                            {/* Page Content */}
+                            <motion.div
+                                initial={{ opacity: 0, filter: 'blur(8px)', scale: 0.98 }}
+                                animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+                                exit={{ opacity: 0, filter: 'blur(8px)', scale: 0.98 }}
+                                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number], delay: 0.3 }}
+                                className="relative z-0"
+                            >
+                                <Outlet />
+                            </motion.div>
                         </motion.div>
                     </AnimatePresence>
                 </main>
