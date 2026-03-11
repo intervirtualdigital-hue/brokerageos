@@ -6,7 +6,7 @@ import {
   ShieldCheck, Clock, Layers, ArrowRight, Building2,
   User, Briefcase, BarChart3, Wrench, MessageSquare,
   CheckCircle2, Sparkles, Lock, ChevronDown,
-  CalendarDays, Loader2,
+  CalendarDays, Loader2, Mail, Phone,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════ */
@@ -458,7 +458,7 @@ const StepIndicator = ({ currentStep }: { currentStep: 1 | 2 }) => (
 /* ═══════════════════════════════════════════ */
 export const BookReview = () => {
   const [formData, setFormData] = useState({
-    name: '', firm: '', volume: '', tools: '', message: '',
+    name: '', email: '', phone: '', firm: '', volume: '', tools: '', message: '',
   });
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -473,6 +473,8 @@ export const BookReview = () => {
       // Build webhook payload with BROKERAGEOS_ prefixes
       const payload = {
         BROKERAGEOS_FULL_NAME: formData.name,
+        BROKERAGEOS_EMAIL: formData.email,
+        BROKERAGEOS_PHONE: formData.phone,
         BROKERAGEOS_FIRM_NAME: formData.firm,
         BROKERAGEOS_DEAL_VOLUME: formData.volume,
         BROKERAGEOS_CURRENT_TOOLS: formData.tools,
@@ -638,7 +640,7 @@ export const BookReview = () => {
                         exit={{ opacity: 0, x: -40 }}
                         transition={{ duration: 0.25 }}
                       >
-                        <FormProgress filled={filledCount} total={4} />
+                        <FormProgress filled={filledCount} total={6} />
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                           <PremiumInput
@@ -646,6 +648,20 @@ export const BookReview = () => {
                             placeholder="Your full name"
                             value={formData.name}
                             onChange={val => setFormData(p => ({ ...p, name: val }))}
+                          />
+                          <PremiumInput
+                            id="email" label="Email Address" icon={Mail}
+                            type="email"
+                            placeholder="you@firm.com"
+                            value={formData.email}
+                            onChange={val => setFormData(p => ({ ...p, email: val }))}
+                          />
+                          <PremiumInput
+                            id="phone" label="Phone Number" icon={Phone}
+                            type="tel"
+                            placeholder="(555) 000-0000"
+                            value={formData.phone}
+                            onChange={val => setFormData(p => ({ ...p, phone: val }))}
                           />
                           <PremiumInput
                             id="firm" label="Firm Name" icon={Briefcase}
