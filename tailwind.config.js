@@ -7,25 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#1d1d1d', // Validated User Request
-        surface: '#262626', // Lighter than BG for Cards
-        'surface-highlight': '#333333',
+        background: '#111111', // Deep grey/almost black workspace
+        surface: '#1A1A1A', // Elevated cards
+        'surface-highlight': '#232323',
         brand: {
-          dark: '#1d1d1d', // Text on Gold
+          dark: '#111111',
           light: '#ffffff',
-          gold: '#FFDD59', // Validated User Request
+          gold: '#FFDD59',
         },
         accent: {
-          DEFAULT: '#FFDD59', // Primary Brand Color mapped to accent utility
-          green: '#10B981', // Success
-          red: '#EF4444', // Error
-          orange: '#F59E0B', // Warning
+          DEFAULT: '#FFDD59', 
+          green: '#10B981', 
+          red: '#EF4444', 
+          orange: '#F59E0B', 
         },
-        glass: 'rgba(255, 255, 255, 0.05)',
+        glass: 'rgba(255, 255, 255, 0.03)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        // Removed Serif as per protocol
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       borderRadius: {
         'btn': '0.5rem',
@@ -40,6 +40,15 @@ export default {
       boxShadow: {
         'glow': '0 0 20px rgba(197, 157, 95, 0.15)', // Gold Glow
         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.3s ease-out',
       },
     },
   },

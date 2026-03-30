@@ -1,63 +1,42 @@
-import { Building, DollarSign, FileText, Lock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
+import { Card } from "@/components/ui/card";
+import type { Deal } from "@/types";
 
-export function ContextSnapshot() {
+interface Props {
+    deal?: Deal | null;
+}
+
+export function ContextSnapshot({ deal }: Props) {
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="text-lg font-medium text-white">Deal Context</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex items-start gap-4">
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-brand-gold shadow-inner">
-                        <Building className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white text-lg">Project: AURA</h4>
-                        <p className="text-sm text-white/50">Premium SaaS Platform in FinTech</p>
-                        <p className="text-xs text-brand-gold/80 mt-1 font-mono">ID: #BOS-2024-001</p>
-                    </div>
+        <Card className="p-6">
+            <h4 className="text-sm font-medium text-white/40 uppercase tracking-widest mb-6">Deal Snapshot</h4>
+            <div className="space-y-4">
+                <div className="flex justify-between">
+                    <span className="text-sm text-white/50">Status</span>
+                    <span className="text-sm font-medium text-white capitalize">{deal ? deal.stage.replace(/_/g, ' ') : '—'}</span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
-                    <div>
-                        <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Asking Price</p>
-                        <p className="text-xl font-bold text-white flex items-center">
-                            <DollarSign className="h-5 w-5 text-brand-gold mr-0.5" />
-                            5.2M
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-white/40 uppercase tracking-wider mb-1">SDE / Cashflow</p>
-                        <p className="text-xl font-bold text-white flex items-center">
-                            <DollarSign className="h-5 w-5 text-brand-gold mr-0.5" />
-                            1.8M
-                        </p>
-                    </div>
+                <div className="flex justify-between">
+                    <span className="text-sm text-white/50">Deal</span>
+                    <span className="text-sm font-medium text-white">{deal?.title ?? '—'}</span>
                 </div>
-
-                <div className="space-y-4 border-t border-white/5 pt-6">
-                    <div className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3 text-sm text-white/60 group-hover:text-white transition-colors">
-                            <div className="p-1.5 rounded-md bg-white/5">
-                                <FileText className="h-4 w-4" />
-                            </div>
-                            <span>NDA Status</span>
-                        </div>
-                        <StatusBadge status="success" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Signed</StatusBadge>
-                    </div>
-                    <div className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3 text-sm text-white/60 group-hover:text-white transition-colors">
-                            <div className="p-1.5 rounded-md bg-white/5">
-                                <Lock className="h-4 w-4" />
-                            </div>
-                            <span>Data Room</span>
-                        </div>
-                        <StatusBadge status="neutral" className="bg-white/5 text-white/50 border-white/10">Locked</StatusBadge>
-                    </div>
+                <div className="flex justify-between">
+                    <span className="text-sm text-white/50">Valuation</span>
+                    <span className="text-sm font-medium text-accent">
+                        {deal?.valuation ? `$${(deal.valuation / 1_000_000).toFixed(1)}M` : '—'}
+                    </span>
                 </div>
-            </CardContent>
+                <div className="flex justify-between">
+                    <span className="text-sm text-white/50">NDA Status</span>
+                    <span className={`text-sm font-medium ${deal?.ndaSigned ? 'text-emerald-400' : 'text-brand-gold'}`}>
+                        {deal?.ndaSigned ? 'Executed' : 'Pending'}
+                    </span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-sm text-white/50">Last Updated</span>
+                    <span className="text-sm text-white/60">
+                        {deal?.updatedAt ? new Date(deal.updatedAt).toLocaleDateString() : '—'}
+                    </span>
+                </div>
+            </div>
         </Card>
     );
 }

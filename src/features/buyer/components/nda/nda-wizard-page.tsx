@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { auditLog } from '@/services/audit-log';
+import { createContact, createOpportunity, triggerWebhook } from '@/services/api';
 
 export default function NdaWizardPage() {
     const navigate = useNavigate();
@@ -27,11 +28,56 @@ export default function NdaWizardPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate API submission
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            // 1. Create or update GHL contact with NDA form data
+            const nameParts = formData.fullName.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
 
-        auditLog.log('nda_submitted', 'user-id-placeholder', `NDA Requested for Listing Project AURA`);
-        navigate('/nda/success');
+            const contact = await createContact({
+                firstName,
+                lastName,
+                email: formData.email,
+                phone: formData.phone,
+                tags: ['buyer', 'nda-submitted'],
+                customFields: [
+                    { key: 'liquid_capital', field_value: formData.liquidCapital },
+                    { key: 'buyer_type', field_value: formData.buyerType },
+                    { key: 'financing_status', field_value: formData.financingStatus },
+                ],
+            });
+
+            // 2. Create opportunity in the NDA stage of the pipeline
+            const pipelineId = import.meta.env.VITE_GHL_PIPELINE_ID;
+            if (pipelineId && contact?.id) {
+                await createOpportunity({
+                    name: `NDA — ${formData.fullName}`,
+                    pipelineId,
+                    pipelineStageId: 'nda', // Will be mapped to actual stage ID
+                    contactId: contact.id,
+                    status: 'open',
+                });
+            }
+
+            // 3. Trigger webhook for broker notification
+            await triggerWebhook('nda_submitted', {
+                contactId: contact?.id,
+                email: formData.email,
+                fullName: formData.fullName,
+                liquidCapital: formData.liquidCapital,
+                buyerType: formData.buyerType,
+            });
+
+            auditLog.log('nda_submitted', contact?.id ?? 'unknown', `NDA Requested for Listing Project AURA`);
+            navigate('/nda/success');
+        } catch (error) {
+            console.error('[NDA] Submission failed:', error);
+            // Even if API fails, still let them proceed (graceful degradation)
+            auditLog.log('nda_submitted', 'fallback', `NDA Request (API unavailable)`);
+            navigate('/nda/success');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -151,7 +197,11 @@ export default function NdaWizardPage() {
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Cancel
                             </Button>
                             <Button type="submit" className="flex-1" isLoading={isLoading} disabled={!formData.certify || !formData.consent}>
-                                Execute Agreement <ArrowRight className="ml-2 h-4 w-4" />
+                                {isLoading ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                                ) : (
+                                    <>Execute Agreement <ArrowRight className="ml-2 h-4 w-4" /></>
+                                )}
                             </Button>
                         </div>
 

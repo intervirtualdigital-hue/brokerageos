@@ -1,52 +1,60 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     LayoutDashboard,
-    Files,
-    ShieldCheck,
-    Calendar,
     MessageSquare,
-    BookOpen,
-    Settings,
+    Calendar,
+    List,
+    Users,
     Briefcase,
-    ChevronDown,
-    ChevronRight
+    BarChart2,
+    Settings,
+    HelpCircle,
+    LogOut,
+    CheckSquare,
+    Globe
 } from 'lucide-react';
+import { useAuth } from '@/features/auth/context';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
 
-// Enhanced Data Structure for Submenus (Phase 6)
-const sidebarItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
-    { icon: Briefcase, label: 'Active Mandates', href: '/deal-room' },
-    { icon: Files, label: 'Data Room Assets', href: '/documents' },
-    { icon: ShieldCheck, label: 'Confidentiality', href: '/nda' },
-    {
-        icon: BookOpen,
-        label: 'Advisory',
-        href: '#',
-        subItems: [
-            { label: 'M&A Advisory', href: '/advisory/m-a' },
-            { label: 'Valuation', href: '/advisory/valuation' },
-            { label: 'Exit Planning', href: '/advisory/exit' },
-        ]
-    },
-    { icon: Calendar, label: 'Verification Sessions', href: '/appointments' },
-    { icon: MessageSquare, label: 'Communications', href: '/messages' },
-    { icon: BookOpen, label: 'Resources', href: '/resources' }, // Renamed from Advisory Resources to avoid confusion
-    { icon: Settings, label: 'Settings', href: '/settings' },
+const topItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/portal', id: 'tour-dashboard' },
+    { icon: MessageSquare, label: 'Messages', href: '/portal/messages', id: 'tour-messages' },
+    { icon: Calendar, label: 'Calendar', href: '/portal/calendar', id: 'tour-calendar' },
+    { icon: List, label: 'Listings', href: '/portal/listings', id: 'tour-listings' },
+    { icon: Users, label: 'Clients', href: '/portal/clients', id: 'tour-clients' },
+    { icon: Briefcase, label: 'Deals', href: '/portal/deals', id: 'tour-deals' },
+    { icon: CheckSquare, label: 'Tasks', href: '/portal/tasks', id: 'tour-tasks' },
+    { icon: BarChart2, label: 'Analytics', href: '/portal/analytics', id: 'tour-analytics' },
+    { icon: Globe, label: 'Form Builder', href: '/portal/funnels', id: 'tour-funnels' },
+    { icon: Settings, label: 'Settings', href: '/portal/settings', id: 'tour-settings' },
 ];
 
-interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const location = useLocation();
-    const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+    const { logout } = useAuth();
 
-    const toggleSubmenu = (label: string) => {
-        setOpenSubmenu(prev => prev === label ? null : label);
+    const startTour = () => {
+        onClose(); // close mobile overlay if open
+        const driverObj = driver({
+          showProgress: true,
+          animate: true,
+          popoverClass: 'broker-theme-driver',
+          steps: [
+            { element: '#tour-dashboard', popover: { title: '📊 Dashboard', description: 'Monitor your firm-wide pipeline metrics, revenue trends (30/60/90 day), and new leads — all synced live with GoHighLevel.' } },
+            { element: '#tour-messages', popover: { title: '💬 Unified Inbox', description: 'Chat with clients via SMS and Email. Every conversation syncs with GHL and actions fire live to the CRM.', side: 'right' } },
+            { element: '#tour-calendar', popover: { title: '📅 Calendar & Booking', description: 'View upcoming advisory sessions, copy booking links, and manage your firm availability.', side: 'right' } },
+            { element: '#tour-listings', popover: { title: '📋 Listings', description: 'Browse and manage your active business listings. Each listing is mapped to a GHL opportunity.', side: 'right' } },
+            { element: '#tour-clients', popover: { title: '👥 Live Contacts', description: 'Search and manage your CRM database. Every contact is synced from GHL in real-time.', side: 'right' } },
+            { element: '#tour-deals', popover: { title: '🤝 Deal Pipeline', description: 'Drag deals between stages on a visual Kanban board. Each move updates GHL opportunities instantly.', side: 'right' } },
+            { element: '#tour-tasks', popover: { title: '✅ Task Intelligence', description: 'AI-generated follow-up tasks detect stalled deals and new leads. Never miss a high-value opportunity.', side: 'right' } },
+            { element: '#tour-analytics', popover: { title: '📈 Analytics', description: 'Firm-wide performance analytics with broker leaderboards and individual drilldown modals.', side: 'right' } },
+            { element: '#tour-funnels', popover: { title: '🌐 Form Builder', description: 'Build drag-and-drop intake forms with live preview. Map fields to GHL contacts, validate submissions, and generate embeddable snippets.', side: 'right' } },
+            { element: '#tour-settings', popover: { title: '⚙️ System Settings', description: 'Configure GHL API tokens, manage team access, billing, security, and update your profile with avatar upload.', side: 'right' } },
+          ]
+        });
+        driverObj.drive();
     };
 
     return (
@@ -60,114 +68,63 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
             />
 
-            {/* Sidebar: Right on Mobile, Left on Desktop */}
+            {/* Sidebar */}
             <aside className={cn(
-                "fixed z-40 h-screen w-72 border-r border-white/5 bg-background transition-transform duration-300",
-                // Mobile: Right side (fixed right, translate usually positive to hide right)
-                "right-0 top-0 border-l md:border-l-0 md:border-r md:left-0 md:right-auto",
-                // Desktop: Translate 0 (visible)
-                "md:translate-x-0 hidden md:flex flex-col",
-                // Mobile Toggle Logic: 
-                isOpen ? "translate-x-0 flex" : "translate-x-full md:translate-x-0"
+                "fixed z-40 h-screen w-[260px] border-r border-[#1F1F1F] bg-[#111111] flex flex-col transition-transform duration-300",
+                "left-0 top-0",
+                !isOpen && "-translate-x-full md:translate-x-0"
             )}>
-                <div className="flex h-20 items-center px-8">
-                    <h1 className="font-sans text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-brand-gold/20 border border-brand-gold/50 flex items-center justify-center">
-                            <Briefcase className="h-4 w-4 text-brand-gold" />
+                {/* Logo Area */}
+                <div className="flex h-[72px] shrink-0 items-center px-6 border-b border-[#1F1F1F]">
+                    <h1 className="font-serif text-[22px] font-bold text-white flex items-center gap-3">
+                        <div className="h-8 w-8 rounded overflow-hidden flex items-center justify-center bg-brand-gold">
+                            <Briefcase className="h-[18px] w-[18px] text-black" fill="currentColor" />
                         </div>
-                        Brokerage OS
+                        BrokerageOS
                     </h1>
                 </div>
 
-                <div className="flex-1 px-4 py-6 overflow-y-auto">
-                    <div className="mb-6 px-4">
-                        <p className="text-xs font-medium text-white/40 uppercase tracking-widest mb-4">Main Menu</p>
-                        <nav className="space-y-1">
-                            {sidebarItems.slice(0, 4).map((item) => renderNavItem(item, location.pathname, openSubmenu, toggleSubmenu, onClose))}
-                        </nav>
-                    </div>
+                {/* Primary Nav */}
+                <div className="flex-1 py-6 overflow-y-auto hide-scrollbar flex flex-col justify-between">
+                    <nav className="space-y-1.5 px-3">
+                        {topItems.map((item) => {
+                            const isActive = location.pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    to={item.href}
+                                    id={item.id}
+                                    onClick={onClose}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-xl px-4 py-[11px] text-[15px] font-medium transition-all group relative",
+                                        isActive
+                                            ? "text-[#FFDD59] bg-[#FFDD59]/[0.08]" 
+                                            : "text-white/60 hover:text-white hover:bg-white/5"
+                                    )}
+                                >
+                                    {isActive && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 bg-[#FFDD59] rounded-r-full shadow-[0_0_10px_#FFDD59]" />
+                                    )}
+                                    <item.icon className={cn("h-5 w-5", isActive ? "text-[#FFDD59]" : "text-white/50 group-hover:text-white/80")} />
+                                    {item.label}
+                                </Link>
+                            )
+                        })}
+                    </nav>
 
-                    <div className="px-4">
-                        <p className="text-xs font-medium text-white/40 uppercase tracking-widest mb-4">Workspace</p>
-                        <nav className="space-y-1">
-                            {sidebarItems.slice(4).map((item) => renderNavItem(item, location.pathname, openSubmenu, toggleSubmenu, onClose))}
-                        </nav>
-                    </div>
-                </div>
-
-                <div className="absolute bottom-4 left-0 w-full px-6">
-                    <div className="rounded-2xl bg-gradient-to-br from-brand-gold/10 to-transparent p-4 border border-brand-gold/5">
-                        <p className="text-xs text-brand-gold mb-1 font-medium">Need Help?</p>
-                        <p className="text-xs text-white/50 mb-3">Contact your dedicated broker team.</p>
-                        <button className="w-full rounded-xl bg-brand-gold/10 px-2 py-2 text-xs font-medium text-brand-gold hover:bg-brand-gold/20 transition-colors h-9">
-                            Contact Support
+                    {/* Bottom Links */}
+                    <div className="px-3 border-t border-[#1F1F1F] pt-4 mt-8 space-y-1.5">
+                        <button onClick={startTour} className="w-full flex items-center gap-3 rounded-xl px-4 py-[11px] text-[15px] font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                            <HelpCircle className="h-5 w-5" />
+                            Menu Tour
+                        </button>
+                        <button onClick={logout} className="w-full flex items-center gap-3 rounded-xl px-4 py-[11px] text-[15px] font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                            <LogOut className="h-5 w-5" />
+                            Logout
                         </button>
                     </div>
                 </div>
             </aside>
         </>
     );
-}
-
-function renderNavItem(item: any, currentPath: string, openSubmenu: string | null, toggleSubmenu: (l: string) => void, onClose: () => void) {
-    const isActive = currentPath === item.href;
-    const hasSubItems = item.subItems && item.subItems.length > 0;
-    const isSubOpen = openSubmenu === item.label;
-
-    if (hasSubItems) {
-        return (
-            <div key={item.label} className="space-y-1 relative">
-                <button
-                    onClick={() => toggleSubmenu(item.label)}
-                    className={cn(
-                        "w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 group",
-                        isSubOpen ? "text-white bg-white/5" : "text-white/50 hover:text-white hover:bg-white/5"
-                    )}
-                >
-                    <div className="flex items-center gap-3">
-                        <item.icon className={cn("h-4 w-4 transition-colors", isSubOpen ? "text-brand-gold" : "text-white/50 group-hover:text-white")} />
-                        {item.label}
-                    </div>
-                    {isSubOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                </button>
-
-                {/* Vertical Line for Submenu */}
-                {isSubOpen && <div className="absolute left-6 top-10 bottom-2 w-px bg-white/10" />}
-
-                <div className={cn(
-                    "space-y-1 pl-4 overflow-hidden transition-all duration-300 ease-in-out",
-                    isSubOpen ? "max-h-48 opacity-100 mt-1" : "max-h-0 opacity-0"
-                )}>
-                    {item.subItems!.map((sub: any) => (
-                        <Link
-                            key={sub.href}
-                            to={sub.href}
-                            onClick={onClose}
-                            className="block rounded-lg px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 ml-4"
-                        >
-                            {sub.label}
-                        </Link>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <Link
-            key={item.href}
-            to={item.href}
-            onClick={onClose}
-            className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 group relative overflow-hidden",
-                isActive
-                    ? "text-white bg-gradient-to-r from-white/10 to-transparent shadow-inner border border-white/5"
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-            )}
-        >
-            {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-brand-gold rounded-r-full shadow-[0_0_10px_#C59D5F]" />}
-            <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-brand-gold" : "text-white/50 group-hover:text-white")} />
-            {item.label}
-        </Link>
-    )
 }

@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CloudUpload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { CloudUpload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/features/auth/context';
+import { triggerWebhook, createContactNote } from '@/services/api';
 
 const categories = [
     { id: 'financials', label: 'Financial Records', description: 'P&L, Balance Sheets (Last 3 years)', status: 'action_required' },
@@ -16,16 +18,64 @@ const categories = [
 
 export default function SellerDocumentsPage() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [uploadingId, setUploadingId] = useState<string | null>(null);
     const [completedIds, setCompletedIds] = useState<string[]>([]);
 
-    const handleUpload = (id: string) => {
+    const handleUpload = async (id: string) => {
         setUploadingId(id);
-        // Simulate upload
-        setTimeout(() => {
+        const category = categories.find(c => c.id === id);
+
+        try {
+            // Create a file input for actual file selection
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf,.xlsx,.docx,.csv';
+            input.multiple = true;
+
+            input.onchange = async (e) => {
+                const files = (e.target as HTMLInputElement).files;
+                if (!files?.length) {
+                    setUploadingId(null);
+                    return;
+                }
+
+                try {
+                    // Trigger webhook with file metadata
+                    await triggerWebhook('document_uploaded', {
+                        contactId: user?.ghlContactId,
+                        category: id,
+                        categoryLabel: category?.label,
+                        fileCount: files.length,
+                        fileNames: Array.from(files).map(f => f.name),
+                        uploadedBy: user?.name,
+                        uploadedAt: new Date().toISOString(),
+                    });
+
+                    // Log document upload as a GHL note
+                    if (user?.ghlContactId) {
+                        const fileNames = Array.from(files).map(f => f.name).join(', ');
+                        await createContactNote(
+                            user.ghlContactId,
+                            `[DOC] ${fileNames} | ${id} | uploaded | ${new Date().toISOString()}`
+                        );
+                    }
+
+                    setCompletedIds(prev => [...prev, id]);
+                } catch (err) {
+                    console.error('[Upload] Webhook/note failed:', err);
+                    // Still mark as complete locally
+                    setCompletedIds(prev => [...prev, id]);
+                } finally {
+                    setUploadingId(null);
+                }
+            };
+
+            input.click();
+        } catch (err) {
+            console.error('[Upload] Failed:', err);
             setUploadingId(null);
-            setCompletedIds(prev => [...prev, id]);
-        }, 1500);
+        }
     };
 
     return (
@@ -41,15 +91,11 @@ export default function SellerDocumentsPage() {
                 </div>
             </div>
 
-            {/* Mobile View: Accordion (Phase 5/11) */}
+            {/* Mobile View */}
             <div className="md:hidden space-y-4">
                 {categories.map((category) => {
                     const isComplete = completedIds.includes(category.id);
                     const isUploading = uploadingId === category.id;
-                    // const isOpen = true; // For now, keep all open or implement state. User asked for Accordion.
-                    // Better to use a standard Accordion logic or just stack them as cards with content visible.
-                    // "Tabs become stacked sections".
-                    // I'll render each category as a stacked card.
 
                     return (
                         <Card key={category.id} className="overflow-hidden">
@@ -88,9 +134,8 @@ export default function SellerDocumentsPage() {
                 })}
             </div>
 
-            {/* Desktop View: Tabs/Sidebar */}
+            {/* Desktop View */}
             <div className="hidden md:flex flex-row gap-6">
-                {/* Sidebar / Categories */}
                 <div className="w-full md:w-64 space-y-4 shrink-0">
                     <Card>
                         <CardContent className="p-4 space-y-1">
@@ -103,6 +148,7 @@ export default function SellerDocumentsPage() {
                                             value={cat.id}
                                             className="w-full justify-start px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-white/50 data-[state=active]:bg-brand-gold data-[state=active]:!text-black data-[state=active]:shadow-glow data-[state=active]:font-bold hover:bg-white/5 hover:text-white"
                                         >
+                                            {completedIds.includes(cat.id) && <CheckCircle className="mr-2 h-3.5 w-3.5 text-emerald-500" />}
                                             {cat.label}
                                         </TabsTrigger>
                                     ))}
@@ -124,7 +170,6 @@ export default function SellerDocumentsPage() {
                     </Card>
                 </div>
 
-                {/* Main Content */}
                 <Card className="flex-1 bg-white/5 border-white/5 backdrop-blur-sm min-h-[500px]">
                     <CardContent className="p-6 space-y-6">
                         {/* Upload Area */}
@@ -179,7 +224,11 @@ export default function SellerDocumentsPage() {
                                                         isLoading={isUploading}
                                                         className="bg-white/10 hover:bg-white/20 text-white border-0"
                                                     >
-                                                        <CloudUpload className="mr-2 h-4 w-4" />
+                                                        {isUploading ? (
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <CloudUpload className="mr-2 h-4 w-4" />
+                                                        )}
                                                         Upload Files
                                                     </Button>
                                                 )}

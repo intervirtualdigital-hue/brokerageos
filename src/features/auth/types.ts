@@ -7,6 +7,8 @@ export interface User {
     role: UserRole;
     avatarUrl?: string;
     companyName?: string;
+    phone?: string;
+    ghlContactId?: string;
 }
 
 export interface AuthState {
