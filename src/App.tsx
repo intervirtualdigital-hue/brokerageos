@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PublicLayout } from '@/layouts/public-layout';
 import { DashboardLayout } from '@/layouts/dashboard-layout';
 import { PortalGate } from '@/components/portal/portal-gate';
