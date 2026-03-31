@@ -311,7 +311,6 @@ export default function FunnelBuilderPage() {
                 lastName: contactPayload.lastName || '',
                 email: contactPayload.email || '',
                 phone: contactPayload.phone || '',
-                companyName: contactPayload.companyName || '',
                 tags: ['funnel_submission'],
                 customFields: Object.entries(customFields).map(([key, value]) => ({ key, field_value: value })),
             });
