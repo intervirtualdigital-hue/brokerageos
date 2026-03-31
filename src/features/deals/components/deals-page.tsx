@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDeals } from '@/hooks/useGHL';
 import { createOpportunity, updateOpportunity } from '@/services/api';
 import { PIPELINES } from '@/config/ghl-config';
+import { motion, AnimatePresence } from 'framer-motion';
 
-import { Loader2, Briefcase, ChevronRight, Plus, LayoutList, Columns, GripVertical, FileText, MessageSquare, User2, Upload } from 'lucide-react';
+import { Loader2, ChevronRight, Plus, LayoutList, Columns, GripVertical, FileText, MessageSquare, User2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/modal';
 import {
@@ -37,11 +38,21 @@ const STAGES = [
 ];
 
 // ─── Droppable Column Wrapper ──────────────────────────────
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+function DroppableColumn({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     return (
-        <div ref={setNodeRef} className={`flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-2.5 min-h-[100px] p-2.5 rounded-xl transition-all ${isOver ? 'bg-brand-gold/5 ring-1 ring-brand-gold/30 ring-inset' : ''}`}>
-            {children}
+        <div className="flex flex-col h-full min-w-[280px] bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+            <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#161616]/50">
+                <h3 className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">{title}</h3>
+                <div className="h-4 w-4 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/30">
+                    {React.Children.count(children)}
+                </div>
+            </div>
+            <div ref={setNodeRef} className={`flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-3 transition-all duration-300 ${isOver ? 'bg-brand-gold/[0.03] ring-1 ring-brand-gold/20' : ''}`}>
+                <AnimatePresence mode="popLayout">
+                    {children}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }
@@ -59,32 +70,45 @@ function SortableCard({ deal, isOverlay = false, onClickDeal }: { deal: any, isO
     }
 
     return (
-        <div 
+        <motion.div 
             ref={setNodeRef} style={style}
-            className={`bg-[#1A1A1A] border-[#2A2A2A] border hover:border-brand-gold/50 transition-colors p-3.5 rounded-xl group relative select-none ${isOverlay ? 'shadow-2xl shadow-black/80 ring-2 ring-brand-gold scale-105 z-50 cursor-grabbing' : 'cursor-grab active:cursor-grabbing'}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`bg-[#1A1A1A] border-[#2A2A2A] border hover:border-brand-gold/40 transition-all p-4 rounded-xl group relative select-none ${isOverlay ? 'shadow-2xl shadow-black/80 ring-2 ring-brand-gold scale-105 z-50 cursor-grabbing bg-[#222]' : 'cursor-grab active:cursor-grabbing hover:bg-[#1C1C1C]'}`}
         >
-            <div className={`absolute left-0 top-0 bottom-0 w-1 bg-brand-gold opacity-0 group-hover:opacity-100 transition-opacity rounded-l-xl ${isOverlay ? 'opacity-100' : ''}`} />
+            <div className={`absolute left-0 top-3 bottom-3 w-1 bg-brand-gold/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-r-full ${isOverlay ? 'opacity-100' : ''}`} />
             {/* Drag handle area */}
-            <div {...attributes} {...listeners} className="flex items-start justify-between mb-1">
-                <p className={`text-[13px] font-semibold transition-colors truncate max-w-[200px] ${isOverlay ? 'text-brand-gold' : 'text-white group-hover:text-brand-gold'}`}>{deal.title}</p>
-                <GripVertical className="h-3.5 w-3.5 text-white/20 group-hover:text-white/50 shrink-0" />
+            <div {...attributes} {...listeners} className="flex items-start justify-between mb-2">
+                <p className={`text-[13px] font-bold transition-colors truncate max-w-[200px] leading-tight ${isOverlay ? 'text-brand-gold' : 'text-white/90 group-hover:text-white'}`}>{deal.title}</p>
+                <div className="p-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                    <GripVertical className="h-3.5 w-3.5 text-white/50" />
+                </div>
             </div>
             {/* Clickable info area */}
             <div onClick={(e) => { e.stopPropagation(); onClickDeal?.(deal); }} className="cursor-pointer">
-                <p className="text-[11px] text-white/40 flex items-center gap-1.5 mb-2">
-                    <Briefcase className="h-3 w-3" /> {deal.id.slice(-6)}
-                </p>
-                <div className="flex items-end justify-between">
-                    <div>
-                        <p className="text-[9px] text-white/30 uppercase tracking-wide mb-0.5">Value</p>
-                        <p className="text-[13px] font-bold text-white">${(deal.valuation || 0).toLocaleString()}</p>
-                    </div>
-                    <div className={`rounded-full p-1 transition-colors ${isOverlay ? 'bg-brand-gold text-black' : 'bg-[#2A2A2A] text-white/40 group-hover:bg-brand-gold group-hover:text-black'}`}>
-                        <ChevronRight className="h-3 w-3" />
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] text-white/30 font-mono flex items-center gap-1.5 uppercase tracking-wider">
+                        <FileText className="h-2.5 w-2.5" /> ID:{deal.id.slice(-4)}
+                    </p>
+                    <div className="flex items-center -space-x-1">
+                        <div className="h-4 w-4 rounded-full border border-[#111] bg-[#333] flex items-center justify-center text-[8px] font-bold">JD</div>
                     </div>
                 </div>
+                <div className="flex items-end justify-between border-t border-white/[0.03] pt-3">
+                    <div>
+                        <p className="text-[9px] text-white/20 uppercase tracking-[0.1em] mb-0.5 font-bold">Pipeline Value</p>
+                        <p className="text-[14px] font-black text-white/90 font-mono tracking-tight">${(deal.valuation || 0).toLocaleString()}</p>
+                    </div>
+                    <motion.div 
+                        whileHover={{ x: 2 }}
+                        className={`rounded-full p-1.5 transition-colors ${isOverlay ? 'bg-brand-gold text-black' : 'bg-white/5 text-white/30 group-hover:bg-brand-gold group-hover:text-black group-hover:shadow-[0_0_10px_rgba(197,157,95,0.4)]'}`}
+                    >
+                        <ChevronRight className="h-3 w-3" />
+                    </motion.div>
+                </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -274,39 +298,39 @@ export default function DealsPage() {
             {isLoading ? (
                 <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-brand-gold" /></div>
             ) : viewMode === 'kanban' ? (
-                <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-                    <div className="flex-1 flex gap-4 overflow-x-auto pb-4 hide-scrollbar relative">
+                <DndContext 
+                    sensors={sensors} 
+                    collisionDetection={closestCorners} 
+                    onDragStart={handleDragStart} 
+                    onDragOver={handleDragOver} 
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="flex-1 flex gap-5 overflow-x-auto pb-4 hide-scrollbar relative items-stretch">
                         {STAGES.map(stage => {
                             const colDeals = columns[stage.id] || [];
-                            const totalValue = colDeals.reduce((sum, d) => sum + (d.valuation || 0), 0);
                             return (
-                                <div key={stage.id} className="w-[300px] shrink-0 flex flex-col bg-[#111111] rounded-2xl border border-[#2A2A2A] overflow-hidden">
-                                    <div className="p-3.5 border-b border-[#2A2A2A] bg-[#161616]">
-                                        <div className="flex items-center justify-between mb-0.5">
-                                            <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">{stage.title}</h3>
-                                            <span className="bg-[#222222] text-brand-gold text-[10px] font-bold px-2 py-0.5 rounded-full">{colDeals.length}</span>
-                                        </div>
-                                        <p className="text-[10px] font-semibold text-white/40">${totalValue.toLocaleString()}</p>
-                                    </div>
-                                    {/* Droppable column body */}
+                                <DroppableColumn key={stage.id} id={stage.id} title={stage.title}>
                                     <SortableContext id={stage.id} items={colDeals.map(d => d.id)} strategy={verticalListSortingStrategy}>
-                                        <DroppableColumn id={stage.id}>
-                                            {colDeals.map(deal => (
-                                                <SortableCard key={deal.id} deal={deal} onClickDeal={setSelectedDeal} />
-                                            ))}
-                                            {colDeals.length === 0 && (
-                                                <div className="h-20 border border-dashed border-[#2A2A2A] rounded-xl flex items-center justify-center">
-                                                    <p className="text-[11px] text-white/20 italic">Drop here</p>
-                                                </div>
-                                            )}
-                                        </DroppableColumn>
+                                        {colDeals.map(deal => (
+                                            <SortableCard key={deal.id} deal={deal} onClickDeal={setSelectedDeal} />
+                                        ))}
+                                        {colDeals.length === 0 && (
+                                            <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl opacity-20 p-8 min-h-[120px]">
+                                                <Plus className="h-5 w-5 mb-2" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Drop Here</span>
+                                            </div>
+                                        )}
                                     </SortableContext>
-                                </div>
+                                </DroppableColumn>
                             );
                         })}
                     </div>
                     <DragOverlay dropAnimation={dropAnimation}>
-                        {activeDeal ? <div className="w-[276px]"><SortableCard deal={activeDeal} isOverlay /></div> : null}
+                        {activeDeal ? (
+                            <div className="w-[300px] cursor-grabbing rotate-2 scale-105 transition-transform">
+                                <SortableCard deal={activeDeal} isOverlay />
+                            </div>
+                        ) : null}
                     </DragOverlay>
                 </DndContext>
             ) : (

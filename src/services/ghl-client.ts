@@ -6,7 +6,13 @@
  * out of the browser bundle and avoids CORS issues.
  */
 
-const BASE = import.meta.env.VITE_GHL_API_BASE || '/api/ghl';
+const getBase = () => {
+  const envBase = import.meta.env.VITE_GHL_API_BASE;
+  if (envBase) return envBase.replace(/\/$/, '');
+  return '/api/ghl';
+};
+
+const BASE = getBase();
 const API_VERSION = '2021-07-28';
 
 interface GHLRequestOptions {
