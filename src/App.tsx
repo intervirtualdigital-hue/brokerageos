@@ -30,7 +30,7 @@ import SettingsPage from '@/features/settings/components/settings-page';
 
 function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <Routes>
           {/* ── Public Routes (no auth) ─────────────── */}
