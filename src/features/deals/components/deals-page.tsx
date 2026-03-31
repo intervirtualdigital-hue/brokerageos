@@ -323,7 +323,7 @@ export default function DealsPage() {
                             {dealsData?.map(deal => (
                                 <tr key={deal.id} className="hover:bg-[#1A1A1A] transition-colors cursor-pointer group" onClick={() => setSelectedDeal(deal)}>
                                     <td className="p-4 pl-6 font-semibold text-[14px] text-white group-hover:text-brand-gold transition-colors">{deal.title}</td>
-                                    <td className="p-4"><span className="bg-[#222] text-white/80 border border-[#333] px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">{STAGES.find(s => s.id === deal.stage)?.title || deal.stage}</span></td>
+                                    <td className="p-4"><span className="bg-[#222] text-white/80 border border-[#333] px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">{STAGES.find(s => s.id === (deal.stage as string))?.title || deal.stage}</span></td>
                                     <td className="p-4 pr-6 text-right font-mono text-[13px]">${(deal.valuation || 0).toLocaleString()}</td>
                                 </tr>
                             ))}

@@ -80,9 +80,9 @@ function CanvasItem({ item, selectedId, onSelect, onRemove, isOverlay = false }:
         const t = item.props.type || item.type;
         switch (t) {
             case 'heading': {
-                const Tag = (item.props.size || 'h1') as keyof JSX.IntrinsicElements;
                 const sizeClass = item.props.size === 'h1' ? 'text-3xl' : item.props.size === 'h2' ? 'text-2xl' : 'text-xl';
-                return <Tag className={`${sizeClass} font-serif font-bold text-[#111]`} style={{ textAlign: item.props.align }}>{item.props.text}</Tag>;
+                const hProps = { className: `${sizeClass} font-serif font-bold text-[#111]`, style: { textAlign: item.props.align as any } };
+                return item.props.size === 'h2' ? <h2 {...hProps}>{item.props.text}</h2> : item.props.size === 'h3' ? <h3 {...hProps}>{item.props.text}</h3> : <h1 {...hProps}>{item.props.text}</h1>;
             }
             case 'text':
                 return <p className="text-gray-600 text-sm" style={{ textAlign: item.props.align }}>{item.props.text}</p>;
@@ -313,7 +313,7 @@ export default function FunnelBuilderPage() {
                 phone: contactPayload.phone || '',
                 companyName: contactPayload.companyName || '',
                 tags: ['funnel_submission'],
-                customFields: Object.entries(customFields).map(([key, value]) => ({ key, value })),
+                customFields: Object.entries(customFields).map(([key, value]) => ({ key, field_value: value })),
             });
 
             // Trigger webhook
@@ -383,9 +383,9 @@ export default function FunnelBuilderPage() {
                                     const t = el.props.type || el.type;
                                     switch (t) {
                                         case 'heading': {
-                                            const Tag = (el.props.size || 'h1') as keyof JSX.IntrinsicElements;
                                             const sizeClass = el.props.size === 'h1' ? 'text-3xl' : el.props.size === 'h2' ? 'text-2xl' : 'text-xl';
-                                            return <Tag key={el.id} className={`${sizeClass} font-serif font-bold text-[#111]`} style={{ textAlign: el.props.align }}>{el.props.text}</Tag>;
+                                            const hProps = { key: el.id, className: `${sizeClass} font-serif font-bold text-[#111]`, style: { textAlign: el.props.align as any } };
+                                            return el.props.size === 'h2' ? <h2 {...hProps}>{el.props.text}</h2> : el.props.size === 'h3' ? <h3 {...hProps}>{el.props.text}</h3> : <h1 {...hProps}>{el.props.text}</h1>;
                                         }
                                         case 'text':
                                             return <p key={el.id} className="text-gray-600 text-sm" style={{ textAlign: el.props.align }}>{el.props.text}</p>;
