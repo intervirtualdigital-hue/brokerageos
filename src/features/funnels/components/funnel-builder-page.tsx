@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Type, Layout, AlignLeft, Send, Settings, Copy, Monitor, Smartphone, Globe, Code, Plus, Loader2, CheckCircle } from 'lucide-react';
+import { Type, Layout, AlignLeft, Send, Settings, Copy, Monitor, Smartphone, Globe, Code, Plus, Loader2, CheckCircle, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createContact, triggerWebhook } from '@/services/api';
 
@@ -130,11 +130,22 @@ function CanvasItem({ item, selectedId, onSelect, onRemove, isOverlay = false }:
             ref={setNodeRef}
             style={style}
             onClick={() => onSelect(item.id)}
-            className={`relative p-4 rounded-xl group transition-all ${isSelected ? 'ring-2 ring-brand-gold bg-blue-50/10' : 'hover:ring-1 hover:ring-brand-gold/50'} ${isOverlay ? 'shadow-2xl scale-105 bg-white z-50 cursor-grabbing' : 'bg-transparent cursor-grab active:cursor-grabbing'}`}
+            className={`relative p-4 rounded-xl group transition-all ${isSelected ? 'ring-2 ring-brand-gold bg-blue-50/5' : 'hover:ring-1 hover:ring-brand-gold/50'} ${isOverlay ? 'shadow-2xl scale-105 bg-white z-50 cursor-grabbing' : 'bg-transparent cursor-grab active:cursor-grabbing'}`}
         >
-            <div className={`absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 p-1.5 bg-red-500 text-white rounded-full text-xs opacity-0 ${isSelected ? 'opacity-100 hover:scale-110 cursor-pointer' : 'group-hover:opacity-100'}`} onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}>
-                ✕
-            </div>
+            {/* Delete Button - Absolute positioned with high z-index and explicit click handler */}
+            <button 
+                type="button"
+                onClick={(e) => { 
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    onRemove(item.id); 
+                }}
+                className={`absolute -top-2 -right-2 h-7 w-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transform transition-all duration-200 border-2 border-white z-[60] pointer-events-auto ${isSelected ? 'scale-100 opacity-100' : 'scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-90'}`}
+                title="Remove Element"
+            >
+                <X className="h-4 w-4" strokeWidth={3} />
+            </button>
+
             <div {...attributes} {...listeners} className="pointer-events-none">
                 {renderContent()}
             </div>
@@ -352,6 +363,10 @@ export default function FunnelBuilderPage() {
                         <button onClick={() => loadTemplate('buyer')} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-brand-gold hover:bg-[#222] rounded-lg transition-all">Buyer</button>
                         <button onClick={() => loadTemplate('seller')} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-brand-gold hover:bg-[#222] rounded-lg transition-all">Seller</button>
                         <button onClick={() => loadTemplate('nda')} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-brand-gold hover:bg-[#222] rounded-lg transition-all">NDA</button>
+                        <div className="w-[1px] bg-white/10 mx-1 my-1" />
+                        <button onClick={() => { setElements([]); setSelectedElementId(null); toast.info("Canvas cleared."); }} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-400/60 hover:text-red-400 hover:bg-red-400/5 rounded-lg transition-all flex items-center gap-1.5">
+                            <Trash2 className="h-3 w-3" /> Clear
+                        </button>
                     </div>
                     <button onClick={() => { setPreviewMode(!previewMode); setFormSubmitted(false); setFormValues({}); }} className={`h-9 px-4 flex items-center gap-2 rounded-xl border font-bold text-[12px] transition-all ${previewMode ? 'bg-brand-gold text-black border-brand-gold' : 'bg-[#222] hover:bg-[#333] border-[#333] text-white'}`}>
                         {previewMode ? '← Edit Mode' : '▶ Preview'}
@@ -489,10 +504,10 @@ export default function FunnelBuilderPage() {
                             </div>
 
                             {/* Canvas Dropzone */}
-                            <div className="flex-1 overflow-y-auto hide-scrollbar py-16 flex justify-center w-full">
+                            <div className="flex-1 overflow-y-auto hide-scrollbar py-16 flex justify-center w-full bg-grid-white/[0.02]">
                                 <SortableContext id="canvas" items={elements.map(e => e.id)} strategy={verticalListSortingStrategy}>
                                     <DroppableCanvas>
-                                        <div className={`bg-white rounded-3xl shadow-2xl overflow-y-auto transition-all duration-300 relative border border-gray-200 ${viewMode === 'desktop' ? 'w-[700px] min-h-[500px] p-10' : 'w-[375px] min-h-[700px] p-6'}`}>
+                                        <div className={`bg-white rounded-3xl shadow-2xl transition-all duration-300 relative border border-gray-200 mb-20 ${viewMode === 'desktop' ? 'w-[700px] min-h-[600px] p-10' : 'w-[375px] min-h-[700px] p-6'}`}>
                                             {elements.length === 0 ? (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
                                                     <Layout className="h-14 w-14 mb-3 opacity-20" />

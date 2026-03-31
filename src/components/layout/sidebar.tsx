@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
@@ -33,7 +33,6 @@ const topItems = [
 ];
 
 export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-    const location = useLocation();
     const { logout } = useAuth();
 
     const startTour = () => {
@@ -88,44 +87,41 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                 {/* Primary Nav */}
                 <div className="flex-1 py-6 overflow-y-auto hide-scrollbar flex flex-col justify-between">
                     <nav className="space-y-1.5 px-3">
-                        {topItems.map((item) => {
-                            // With HashRouter, the path is in location.pathname and the hash 
-                            // typically mirrors it if using standard Link 'to="/..."'.
-                            // However, let's be robust:
-                            const isActive = location.pathname === item.href;
-                            
-                            return (
-                                <Link
-                                    key={item.href}
-                                    to={item.href}
-                                    id={item.id}
-                                    onClick={onClose}
-                                    className={cn(
-                                        "flex items-center gap-3 rounded-xl px-4 py-[11px] text-[15px] font-medium transition-all group relative overflow-hidden",
-                                        isActive
-                                            ? "text-[#FFDD59] bg-[#FFDD59]/[0.08]" 
-                                            : "text-white/60 hover:text-white hover:bg-white/5"
-                                    )}
-                                >
-                                    {isActive && (
-                                        <motion.div 
-                                            layoutId="active-pill"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 bg-[#FFDD59] rounded-r-full shadow-[0_0_10px_#FFDD59]" 
-                                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        />
-                                    )}
-                                    <item.icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-[#FFDD59]" : "text-white/50 group-hover:text-white/80")} />
-                                    <span className="relative z-10">{item.label}</span>
-                                    {isActive && (
-                                        <motion.div 
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            className="ml-auto w-1 h-1 rounded-full bg-[#FFDD59]"
-                                        />
-                                    )}
-                                </Link>
-                            )
-                        })}
+                        {topItems.map((item) => (
+                            <NavLink
+                                key={item.href}
+                                to={item.href}
+                                id={item.id}
+                                onClick={onClose}
+                                className={({ isActive }) => cn(
+                                    "flex items-center gap-3 rounded-xl px-4 py-[11px] text-[15px] font-medium transition-all group relative overflow-hidden",
+                                    isActive
+                                        ? "text-[#FFDD59] bg-[#FFDD59]/[0.08]" 
+                                        : "text-white/60 hover:text-white hover:bg-white/5"
+                                )}
+                            >
+                                {({ isActive }) => (
+                                    <>
+                                        {isActive && (
+                                            <motion.div 
+                                                layoutId="active-pill"
+                                                className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 bg-[#FFDD59] rounded-r-full shadow-[0_0_10px_#FFDD59]" 
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                        <item.icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-[#FFDD59]" : "text-white/50 group-hover:text-white/80")} />
+                                        <span className="relative z-10">{item.label}</span>
+                                        {isActive && (
+                                            <motion.div 
+                                                initial={{ x: -10, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                className="ml-auto w-1 h-1 rounded-full bg-[#FFDD59]"
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </NavLink>
+                        ))}
                     </nav>
 
                     {/* Bottom Links */}
